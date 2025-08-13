@@ -6,10 +6,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node app.js"
   },
   "keywords": [],
-  "type": "commonjs",
+  "type": "module",
   "author": "",
   "license": "ISC",
   "description": "",
