@@ -11,6 +11,7 @@ import users_router from './routes/users.js';
 import { resolvePath } from './utils/path.js';
 import { connectDB } from './config/db.js';
 import chalk from 'chalk';
+import morgan from 'morgan';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +21,12 @@ dotenv.config({ path: path.join(__dirname, 'config', '.env') });
 connectDB();
 
 const app = express();
-app.use(cors());
+
+if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
+
+
+
+app.use(cors({ origin: '*' }));
 app.use(express.static(resolvePath('public')));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));

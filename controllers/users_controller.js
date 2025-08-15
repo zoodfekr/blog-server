@@ -1,4 +1,5 @@
 import { User_model } from '../models/users_models.js';
+import { userValidationSchema } from '../validation/users_validation.js';
 
 // گرفتن لیست کاربران
 export const getUsers = async (req, res) => {
@@ -18,23 +19,22 @@ export const getUsers = async (req, res) => {
 
 // افزودن کاربر جدید
 export const addUsers = async (req, res) => {
-
-    const { username, password, email } = req.body
-
-    if (!username || !password || !email) return res.status(400).json({ error: "لطفا تمام فیلدها را پر کنید" });
-
     try {
-        const existingUser = await User_model.find({ username });
-
-        if (existingUser.length > 0) return res.status(400).json({ error: "این نام کاربری قبلا ثبت شده است" });
-
-        const user = new User_model({ username, password, email })
-
+        // 1. اعتبارسنجی ورودی‌ها
+        const validatedData = await userValidationSchema.validate(req.body, { abortEarly: false });
+        // 2. بررسی وجود نام کاربری
+        const existingUser = await User_model.findOne({ username: validatedData.username });
+        
+        if (existingUser) return res.status(400).json({ error: "این نام کاربری قبلا ثبت شده است" });
+        // 3. ایجاد و ذخیره کاربر جدید
+        const user = new User_model(validatedData);
         await user.save();
-
         res.json({ message: "کاربر ذخیره شد", data: user });
-
     } catch (error) {
+        if (error.name === 'ValidationError') {
+            // جمع کردن همه خطاهای Yup
+            return res.status(400).json({ errors: error.errors });
+        }
         res.status(500).json({ error: error.message });
     }
 };
