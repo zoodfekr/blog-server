@@ -20,19 +20,24 @@ export const getUsers = async (req, res) => {
 // افزودن کاربر جدید
 export const addUsers = async (req, res) => {
     try {
-        // 1. اعتبارسنجی ورودی‌ها
-        const validatedData = await userValidationSchema.validate(req.body, { abortEarly: false });
+        // 1. اعتبارسنجی ورودی‌ها با متد استاتیک مدل
+        await User_model.validation(req.body);
+
         // 2. بررسی وجود نام کاربری
-        const existingUser = await User_model.findOne({ username: validatedData.username });
-        
-        if (existingUser) return res.status(400).json({ error: "این نام کاربری قبلا ثبت شده است" });
+        const existingUser = await User_model.findOne({ username: req.body.username });
+        if (existingUser) {
+            return res.status(400).json({ error: "این نام کاربری قبلا ثبت شده است" });
+        }
+
         // 3. ایجاد و ذخیره کاربر جدید
-        const user = new User_model(validatedData);
+        const user = new User_model(req.body);
         await user.save();
+
         res.json({ message: "کاربر ذخیره شد", data: user });
+
     } catch (error) {
         if (error.name === 'ValidationError') {
-            // جمع کردن همه خطاهای Yup
+            // خطاهای Yup
             return res.status(400).json({ errors: error.errors });
         }
         res.status(500).json({ error: error.message });
