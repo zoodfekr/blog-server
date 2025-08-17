@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { User_model } from '../models/users_models.js';
 import { userValidationSchema } from '../validation/users_validation.js';
 
@@ -28,9 +29,12 @@ export const addUsers = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ error: "این نام کاربری قبلا ثبت شده است" });
         }
+        
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
 
         // 3. ایجاد و ذخیره کاربر جدید
-        const user = new User_model(req.body);
+        const user = new User_model({ ...req.body, password: hashedPassword });
         await user.save();
 
         res.json({ message: "کاربر ذخیره شد", data: user });
