@@ -4,14 +4,17 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import morgan from 'morgan';
+import chalk from 'chalk';
+
 
 import home_router from './routes/home.js';
 import admin_router from './routes/admin.js';
 import users_router from './routes/users.js';
+import login_router from './routes/login.js';
 import { resolvePath } from './utils/path.js';
 import { connectDB } from './config/db.js';
-import chalk from 'chalk';
-import morgan from 'morgan';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +37,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use('/admin', admin_router);
 app.use(home_router);
 app.use(users_router);
+app.use(login_router);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server is running ${chalk.red(process.env.NODE_ENV)} on port ${PORT}`));
