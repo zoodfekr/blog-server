@@ -1,73 +1,47 @@
 import bcrypt from "bcrypt";
 import { User_model } from '../models/users_models.js';
-import appRoot from 'app-root-path'
-import chalk from "chalk";
-import { removeFileIfExists } from "../utils/deleteFile.js";
-
+import { userValidationSchema } from '../validation/users_validation.js';
 
 // گرفتن لیست کاربران
 export const getUsers = async (req, res) => {
     try {
         const users = await User_model.find();
 
-        console.log('-----------', appRoot);
-
-        const value = {
-            total: users.length,
-            data: users
-        }
-        res.json(value);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    const value = {
+      total: users.length,
+      data: users,
+    };
+    res.json(value);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// دریافت اطلاعات کاربر با نام کاربری
-export const getUserByUserName = async (req, res) => {
-    const { username } = req.params;
-    const user = await User_model.findOne({ username }).select("-password")
-    if (!user) return res.status(404).json({ message: "کاربر یافت نشد" });
-    return res.status(200).json({ data: user });
-}
 
 // افزودن کاربر جدید
 export const addUsers = async (req, res) => {
     try {
-        // 1. اعتبارسنجی ورودی‌ها با متد استاتیک مدل و ارسال فایل در context
-        await User_model.validation(req.body, req.file);
+        // 1. اعتبارسنجی ورودی‌ها با متد استاتیک مدل
+        await User_model.validation(req.body);
 
         // 2. بررسی وجود نام کاربری
         const existingUser = await User_model.findOne({ username: req.body.username });
         if (existingUser) {
-            await removeFileIfExists(req.file?.filename);
             return res.status(400).json({ error: "این نام کاربری قبلا ثبت شده است" });
         }
-
-        // 3. هش کردن پسورد
+        
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-        // 4. گرفتن نام فایل آواتار (اگر وجود داشت)
-        const avatar = req.file ? req.file.filename : null;
 
-        // 5. ایجاد و ذخیره کاربر جدید
-        const user = new User_model({ ...req.body, password: hashedPassword, avatar });
+        // 3. ایجاد و ذخیره کاربر جدید
+        const user = new User_model({ ...req.body, password: hashedPassword });
         await user.save();
 
-        res.json({ message: "کاربر ذخیره شد", data: { username: user.username, avatar: user.avatar, email: user.email } });
+        res.json({ message: "کاربر ذخیره شد", data: user });
 
     } catch (error) {
-
-        console.log(chalk.red('حذف فایل به علت خطا'));
-        await (async () => {
-            try {
-                await removeFileIfExists(req.file?.filename);
-            } catch (err) {
-                if (err.code !== 'ENOENT') {
-                    console.error('خطا در حذف فایل:', err);
-                }
-            }
-        })();
         if (error.name === 'ValidationError') {
+            // خطاهای Yup
             return res.status(400).json({ errors: error.errors });
         }
         res.status(500).json({ error: error.message });

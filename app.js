@@ -4,10 +4,14 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import morgan from 'morgan';
+import chalk from 'chalk';
+
 
 import home_router from './routes/home.js';
 import admin_router from './routes/admin.js';
 import users_router from './routes/users.js';
+import login_router from './routes/login.js';
 import { resolvePath } from './utils/path.js';
 import { connectDB } from './config/db.js';
 import chalk from 'chalk';
