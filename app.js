@@ -11,11 +11,8 @@ import chalk from 'chalk';
 import home_router from './routes/home.js';
 import admin_router from './routes/admin.js';
 import users_router from './routes/users.js';
-import login_router from './routes/login.js';
 import { resolvePath } from './utils/path.js';
 import { connectDB } from './config/db.js';
-import chalk from 'chalk';
-import morgan from 'morgan';
 import { logger } from './config/winston.js';
 
 const __filename = fileURLToPath(import.meta.url);
