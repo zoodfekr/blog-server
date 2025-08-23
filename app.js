@@ -12,6 +12,7 @@ import { resolvePath } from './utils/path.js';
 import { connectDB } from './config/db.js';
 import chalk from 'chalk';
 import morgan from 'morgan';
+import { logger } from './config/winston.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +23,7 @@ connectDB();
 
 const app = express();
 
-if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') app.use(morgan('dev' , {stream : logger.stream}));
 
 
 
@@ -31,9 +32,11 @@ app.use(express.static(resolvePath('public')));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
+// Routes should be defined after body parsing middleware
 app.use('/admin', admin_router);
 app.use(home_router);
 app.use(users_router);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server is running ${chalk.red(process.env.NODE_ENV)} on port ${PORT}`));
